@@ -6,13 +6,35 @@ namespace UXDivers.Popups.Maui
 {
     internal class PopupBackgroundView : UIView
     {
-        public PopupPage? PopupPage { get; set; }
+        private Thickness _basePadding = new (0, 0, 0, 0);
+        private DisplayOrientation? _lastAppliedOrientation;
+
+        private PopupPage? _popupBase;
+        public PopupPage? PopupPage
+        {
+            get => _popupBase;
+            set
+            {
+                _popupBase = value;
+                if (_popupBase != null)
+                {
+                    _basePadding = _popupBase.Padding;
+                }
+            }
+        }
+
         public UIView? PopupContentView { get; set; }
         public Func<Task>? BackgroundTappedAction { get; set; }
         
         public PopupBackgroundView()
         {
             InsetsLayoutMarginsFromSafeArea = false;
+        }
+
+        public override void LayoutSubviews()
+        {
+            base.LayoutSubviews();
+            UpdateLayoutAndSafeArea();
         }
 
         public override UIView? HitTest(CGPoint point, UIEvent? uievent)
@@ -69,6 +91,40 @@ namespace UXDivers.Popups.Maui
             // The touch is considered to be on the background.
             BackgroundTappedAction?.Invoke();
             base.TouchesEnded(touches, evt);
+        }
+
+        private void UpdateLayoutAndSafeArea()
+        {
+            if (PopupPage is null)
+            {
+                return;
+            }
+
+            var currentOrientation = DeviceDisplay.Current.MainDisplayInfo.Orientation;
+            
+            if (_lastAppliedOrientation == currentOrientation)
+            {
+                return;
+            }
+
+            _lastAppliedOrientation = currentOrientation;
+            
+            var safeAreaInsets = SafeAreaInsets;
+            var popupSafeAreaInsets = PopupPage.SafeAreaAsPadding;
+            
+            var topInset = popupSafeAreaInsets.HasFlag(SafeAreaAsPadding.Top) ? safeAreaInsets.Top : 0d;
+            var leftInset = popupSafeAreaInsets.HasFlag(SafeAreaAsPadding.Left) ? safeAreaInsets.Left : 0d;
+            var rightInset = popupSafeAreaInsets.HasFlag(SafeAreaAsPadding.Right) ? safeAreaInsets.Right : 0d;
+            var bottomInset = popupSafeAreaInsets.HasFlag(SafeAreaAsPadding.Bottom) ? safeAreaInsets.Bottom : 0d;
+
+            PopupPage.Padding = new Thickness(
+                _basePadding.Left + leftInset,
+                _basePadding.Top + topInset,
+                _basePadding.Right + rightInset,
+                _basePadding.Bottom + bottomInset
+            );
+
+            PopupPage.Arrange(new Rect(0, 0, Bounds.Width, Bounds.Height));
         }
     }
 }
