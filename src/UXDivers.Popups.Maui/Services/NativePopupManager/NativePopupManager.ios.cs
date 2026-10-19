@@ -55,7 +55,6 @@ internal partial class NativePopupManager
 
         // Add the native popup to the window
         window.AddSubview(nativePopup);
-        nativeBackground.SetNeedsLayout();
 
         if (popup.AvoidKeyboard)
         {
