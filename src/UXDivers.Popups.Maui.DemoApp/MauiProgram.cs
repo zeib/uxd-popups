@@ -25,6 +25,7 @@ public static class MauiProgram
 
         builder.Services
             .AddTransientPopup<CustomSimpleTextPopup>()
+            .AddTransientPopup<TestPopup>()
             .AddTransientPopup<HeadphonesActionSheetPopup, HeadphonesActionSheetViewModel>();
 
 
